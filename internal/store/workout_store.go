@@ -146,9 +146,18 @@ func (s *PostgresWorkoutStore) DeleteWorkout(id int64) error {
 	}
 
 	query = `DELETE FROM workouts WHERE id = $1`
-	_, err = tx.Exec(query, id)
+	result, err := tx.Exec(query, id)
 	if err != nil {
 		return err
+	}
+
+	// Check if any row was affected
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return sql.ErrNoRows
 	}
 
 	err = tx.Commit()

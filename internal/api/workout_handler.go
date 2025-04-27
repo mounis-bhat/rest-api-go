@@ -1,6 +1,7 @@
 package api
 
 import (
+	"database/sql"
 	"encoding/json"
 	"net/http"
 	"strconv"
@@ -109,6 +110,10 @@ func (h *WorkoutHandler) HandleDeleteWorkout(w http.ResponseWriter, r *http.Requ
 	}
 	err = h.workoutStore.DeleteWorkout(workoutId)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			http.Error(w, "Workout not found", http.StatusNotFound)
+			return
+		}
 		http.Error(w, "Failed to delete workout", http.StatusInternalServerError)
 		return
 	}
