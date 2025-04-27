@@ -35,6 +35,9 @@ func NewPostgresWorkoutStore(db *sql.DB) *PostgresWorkoutStore {
 type WorkoutStore interface {
 	CreateWorkout(workout *Workout) (*Workout, error)
 	GetWorkoutById(id int64) (*Workout, error)
+	UpdateWorkout(workout *Workout) error
+	DeleteWorkout(id int64) error
+	GetAllWorkouts() ([]*Workout, error)
 }
 
 func (s *PostgresWorkoutStore) CreateWorkout(workout *Workout) (*Workout, error) {
@@ -97,4 +100,110 @@ func (s *PostgresWorkoutStore) GetWorkoutById(id int64) (*Workout, error) {
 	}
 
 	return workout, nil
+}
+
+func (s *PostgresWorkoutStore) UpdateWorkout(workout *Workout) error {
+	tx, err := s.db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	query := `UPDATE workouts SET title = $1, description = $2, duration_minutes = $3, calories_burned = $4, updated_at = NOW()
+		WHERE id = $5`
+	_, err = tx.Exec(query, workout.Title, workout.Description, workout.DurationMinutes, workout.CaloriesBurned, workout.ID)
+	if err != nil {
+		return err
+	}
+
+	for _, entry := range workout.Entries {
+		query = `UPDATE workout_entries SET exercise_name = $1, sets = $2, reps = $3, duration_seconds = $4, weight = $5, notes = $6, order_index = $7
+			WHERE id = $8`
+		_, err := tx.Exec(query, entry.ExerciseName, entry.Sets, entry.Reps, entry.DurationSeconds, entry.Weight, entry.Notes, entry.OrderIndex, entry.ID)
+		if err != nil {
+			return err
+		}
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *PostgresWorkoutStore) DeleteWorkout(id int64) error {
+	tx, err := s.db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	query := `DELETE FROM workout_entries WHERE workout_id = $1`
+	_, err = tx.Exec(query, id)
+	if err != nil {
+		return err
+	}
+
+	query = `DELETE FROM workouts WHERE id = $1`
+	_, err = tx.Exec(query, id)
+	if err != nil {
+		return err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *PostgresWorkoutStore) GetAllWorkouts() ([]*Workout, error) {
+	query := `SELECT id, title, description, duration_minutes, calories_burned, created_at, updated_at
+		FROM workouts`
+	rows, err := s.db.Query(query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	workouts := []*Workout{}
+	for rows.Next() {
+		workout := &Workout{}
+		err := rows.Scan(&workout.ID, &workout.Title, &workout.Description, &workout.DurationMinutes, &workout.CaloriesBurned, &workout.CreatedAt, &workout.UpdatedAt)
+		if err != nil {
+			return nil, err
+		}
+
+		// Load entries for this workout
+		entriesQuery := `SELECT id, exercise_name, sets, reps, duration_seconds, weight, notes, order_index
+			FROM workout_entries WHERE workout_id = $1`
+		entryRows, err := s.db.Query(entriesQuery, workout.ID)
+		if err != nil {
+			return nil, err
+		}
+		defer entryRows.Close()
+
+		workout.Entries = []WorkoutEntry{}
+		for entryRows.Next() {
+			entry := WorkoutEntry{}
+			err := entryRows.Scan(&entry.ID, &entry.ExerciseName, &entry.Sets, &entry.Reps, &entry.DurationSeconds, &entry.Weight, &entry.Notes, &entry.OrderIndex)
+			if err != nil {
+				return nil, err
+			}
+			workout.Entries = append(workout.Entries, entry)
+		}
+
+		if err = entryRows.Err(); err != nil {
+			return nil, err
+		}
+
+		workouts = append(workouts, workout)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return workouts, nil
 }

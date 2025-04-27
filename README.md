@@ -1,0 +1,251 @@
+# REST API GO
+
+A robust REST API for managing workout routines built with Go, Chi router, and PostgreSQL.
+
+## Overview
+
+This project provides a RESTful API for creating and retrieving workout routines, including detailed exercise entries. It's built using Go with the Chi router for HTTP routing and PostgreSQL for data persistence.
+
+## Features
+
+- Create workout routines with multiple exercise entries
+- Retrieve workout details by ID
+- Update existing workouts
+- Delete workouts
+- List all workouts
+- Database migrations using Goose
+- Modular architecture following clean code principles
+- PostgreSQL database with transaction support
+
+## Project Structure
+
+```
+rest-api-go/
+├── docker-compose.yml    # Docker setup for PostgreSQL
+├── go.mod                # Go module definition
+├── go.sum                # Go module checksums
+├── main.go               # Application entry point
+├── internal/             # Internal application code
+│   ├── api/              # API handlers
+│   │   └── workout_handler.go
+│   ├── app/              # Application setup
+│   │   └── app.go
+│   ├── routes/           # HTTP routes
+│   │   └── routes.go
+│   └── store/            # Database access
+│       ├── database.go
+│       └── workout_store.go
+└── migrations/           # Database migrations
+    ├── fs.go             # Embedded migrations
+    ├── 00001_users.sql
+    ├── 00002_workouts.sql
+    └── 00003_workout_entries.sql
+```
+
+## Prerequisites
+
+- Go 1.24+
+- PostgreSQL 17+ (or Docker for containerized setup)
+- Docker and Docker Compose (optional, for easier setup)
+
+## Getting Started
+
+### Setting up the database
+
+Use the provided Docker Compose file to start a PostgreSQL instance:
+
+```bash
+docker-compose up -d
+```
+
+### Running the application
+
+```bash
+go run main.go
+```
+
+By default, the server runs on port 8080. You can specify a different port using the `-port` flag:
+
+```bash
+go run main.go -port 3000
+```
+
+## API Endpoints
+
+### Health Check
+
+```
+GET /health
+```
+
+Returns a simple "OK" response to verify the server is running.
+
+```bash
+curl http://localhost:8080/health
+```
+
+### Create a New Workout
+
+```
+POST /workouts
+```
+
+Example request:
+
+```bash
+curl -X POST \
+  http://localhost:8080/workouts \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "name": "Morning Cardio",
+    "description": "Quick morning cardio routine",
+    "duration_minutes": 30,
+    "calories_burned": 250,
+    "entries": [
+      {
+        "exercise_name": "Running",
+        "sets": 1,
+        "duration_seconds": 1200,
+        "notes": "Moderate pace",
+        "order_index": 0
+      },
+      {
+        "exercise_name": "Jumping Jacks",
+        "sets": 3,
+        "reps": 20,
+        "notes": "Full extension",
+        "order_index": 1
+      }
+    ]
+  }'
+```
+
+### Get Workout by ID
+
+```
+GET /workouts/{id}
+```
+
+Example request:
+
+```bash
+curl http://localhost:8080/workouts/1
+```
+
+### List All Workouts
+
+```
+GET /workouts
+```
+
+Example request:
+
+```bash
+curl http://localhost:8080/workouts
+```
+
+### Update a Workout
+
+```
+PUT /workouts/{id}
+```
+
+Example request:
+
+```bash
+curl -X PUT \
+  http://localhost:8080/workouts/1 \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "name": "Updated Morning Cardio",
+    "description": "Improved morning cardio routine",
+    "duration_minutes": 45,
+    "calories_burned": 300,
+    "entries": [
+      {
+        "id": 1,
+        "exercise_name": "Running",
+        "sets": 1,
+        "duration_seconds": 1500,
+        "notes": "Faster pace",
+        "order_index": 0
+      },
+      {
+        "id": 2,
+        "exercise_name": "Jumping Jacks",
+        "sets": 4,
+        "reps": 25,
+        "notes": "Full extension",
+        "order_index": 1
+      }
+    ]
+  }'
+```
+
+### Delete a Workout
+
+```
+DELETE /workouts/{id}
+```
+
+Example request:
+
+```bash
+curl -X DELETE http://localhost:8080/workouts/1
+```
+
+## Data Models
+
+### Workout
+
+```go
+type Workout struct {
+    ID              int            `json:"id"`
+    Title           string         `json:"name"`
+    Description     string         `json:"description"`
+    DurationMinutes int            `json:"duration_minutes"`
+    CaloriesBurned  int            `json:"calories_burned"`
+    CreatedAt       string         `json:"created_at"`
+    UpdatedAt       string         `json:"updated_at"`
+    Entries         []WorkoutEntry `json:"entries"`
+}
+```
+
+### Workout Entry
+
+```go
+type WorkoutEntry struct {
+    ID              int      `json:"id"`
+    ExerciseName    string   `json:"exercise_name"`
+    Sets            int      `json:"sets"`
+    Reps            *int     `json:"reps"`
+    DurationSeconds *int     `json:"duration_seconds"`
+    Weight          *float64 `json:"weight"`
+    Notes           string   `json:"notes"`
+    OrderIndex      int      `json:"order_index"`
+}
+```
+
+## Database Schema
+
+The application uses three main tables:
+
+1. `users` - Stores user information (not currently used in the API)
+2. `workouts` - Stores workout routines
+3. `workout_entries` - Stores individual exercises within workouts
+
+## Development
+
+### Database Migrations
+
+This project uses [Goose](https://github.com/pressly/goose) for database migrations. Migrations are automatically applied when the application starts.
+
+### Adding New Endpoints
+
+1. Create a new handler in the `internal/api` directory
+2. Register the handler in the `internal/app/app.go` file
+3. Add routes in the `internal/routes/routes.go` file
+
+## License
+
+[MIT License](LICENSE)
