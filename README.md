@@ -2,6 +2,8 @@
 
 A robust REST API for managing workout routines built with Go, Chi router, and PostgreSQL.
 
+*Last updated: April 27, 2025*
+
 ## Overview
 
 This project provides a RESTful API for creating and retrieving workout routines, including detailed exercise entries. It's built using Go with the Chi router for HTTP routing and PostgreSQL for data persistence.
@@ -32,9 +34,11 @@ rest-api-go/
 │   │   └── app.go
 │   ├── routes/           # HTTP routes
 │   │   └── routes.go
-│   └── store/            # Database access
-│       ├── database.go
-│       └── workout_store.go
+│   ├── store/            # Database access
+│   │   ├── database.go
+│   │   └── workout_store.go
+│   └── utils/            # Utility functions
+│       └── utils.go
 └── migrations/           # Database migrations
     ├── fs.go             # Embedded migrations
     ├── 00001_users.sql
@@ -44,7 +48,7 @@ rest-api-go/
 
 ## Prerequisites
 
-- Go 1.24+
+- Go 1.24.2+
 - PostgreSQL 17+ (or Docker for containerized setup)
 - Docker and Docker Compose (optional, for easier setup)
 
@@ -97,7 +101,7 @@ curl -X POST \
   http://localhost:8080/workouts \
   -H 'Content-Type: application/json' \
   -d '{
-    "name": "Morning Cardio",
+    "title": "Morning Cardio",
     "description": "Quick morning cardio routine",
     "duration_minutes": 30,
     "calories_burned": 250,
@@ -157,7 +161,7 @@ curl -X PUT \
   http://localhost:8080/workouts/1 \
   -H 'Content-Type: application/json' \
   -d '{
-    "name": "Updated Morning Cardio",
+    "title": "Updated Morning Cardio",
     "description": "Improved morning cardio routine",
     "duration_minutes": 45,
     "calories_burned": 300,
@@ -201,7 +205,7 @@ curl -X DELETE http://localhost:8080/workouts/1
 ```go
 type Workout struct {
     ID              int            `json:"id"`
-    Title           string         `json:"name"`
+    Title           string         `json:"title"`
     Description     string         `json:"description"`
     DurationMinutes int            `json:"duration_minutes"`
     CaloriesBurned  int            `json:"calories_burned"`
@@ -238,7 +242,7 @@ The application uses three main tables:
 
 ### Database Migrations
 
-This project uses [Goose](https://github.com/pressly/goose) for database migrations. Migrations are automatically applied when the application starts.
+This project uses [Goose v3](https://github.com/pressly/goose/v3) for database migrations. Migrations are automatically applied when the application starts using embedded SQL files.
 
 ### Adding New Endpoints
 

@@ -4,7 +4,7 @@ import "database/sql"
 
 type Workout struct {
 	ID              int            `json:"id"`
-	Title           string         `json:"name"`
+	Title           string         `json:"title"`
 	Description     string         `json:"description"`
 	DurationMinutes int            `json:"duration_minutes"`
 	CaloriesBurned  int            `json:"calories_burned"` // in kcal
@@ -66,11 +66,8 @@ func (s *PostgresWorkoutStore) CreateWorkout(workout *Workout) (*Workout, error)
 		workout.Entries = append(workout.Entries, entry)
 
 	}
-	err = tx.Commit()
-	if err != nil {
-		return nil, err
-	}
-	return workout, nil
+
+	return workout, tx.Commit()
 }
 
 func (s *PostgresWorkoutStore) GetWorkoutById(id int64) (*Workout, error) {
@@ -111,9 +108,18 @@ func (s *PostgresWorkoutStore) UpdateWorkout(workout *Workout) error {
 
 	query := `UPDATE workouts SET title = $1, description = $2, duration_minutes = $3, calories_burned = $4, updated_at = NOW()
 		WHERE id = $5`
-	_, err = tx.Exec(query, workout.Title, workout.Description, workout.DurationMinutes, workout.CaloriesBurned, workout.ID)
+
+	result, err := tx.Exec(query, workout.Title, workout.Description, workout.DurationMinutes, workout.CaloriesBurned, workout.ID)
 	if err != nil {
 		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return sql.ErrNoRows
 	}
 
 	for _, entry := range workout.Entries {
@@ -125,11 +131,7 @@ func (s *PostgresWorkoutStore) UpdateWorkout(workout *Workout) error {
 		}
 	}
 
-	err = tx.Commit()
-	if err != nil {
-		return err
-	}
-	return nil
+	return tx.Commit()
 }
 
 func (s *PostgresWorkoutStore) DeleteWorkout(id int64) error {
@@ -160,11 +162,7 @@ func (s *PostgresWorkoutStore) DeleteWorkout(id int64) error {
 		return sql.ErrNoRows
 	}
 
-	err = tx.Commit()
-	if err != nil {
-		return err
-	}
-	return nil
+	return tx.Commit()
 }
 
 func (s *PostgresWorkoutStore) GetAllWorkouts() ([]*Workout, error) {
