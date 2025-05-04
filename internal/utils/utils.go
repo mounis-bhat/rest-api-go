@@ -40,3 +40,10 @@ func ReadIdParam(r *http.Request) (int64, error) {
 	}
 	return id, nil
 }
+
+func IntPtr(i int) *int {
+	return &i
+}
+func Float64Ptr(f float64) *float64 {
+	return &f
+}

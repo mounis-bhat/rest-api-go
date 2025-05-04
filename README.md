@@ -1,8 +1,12 @@
 # REST API GO
 
+[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/yourusername/rest-api-go/actions)
+[![Go Version](https://img.shields.io/badge/go-1.24.2+-blue)](https://golang.org/dl/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-yellow.svg)](LICENSE)
+
 A robust REST API for managing workout routines built with Go, Chi router, and PostgreSQL.
 
-*Last updated: April 27, 2025*
+*Last updated: May 4, 2025*
 
 ## Overview
 

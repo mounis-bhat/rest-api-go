@@ -1,6 +1,9 @@
 package store
 
-import "database/sql"
+import (
+	"database/sql"
+	"fmt"
+)
 
 type Workout struct {
 	ID              int            `json:"id"`
@@ -41,6 +44,10 @@ type WorkoutStore interface {
 }
 
 func (s *PostgresWorkoutStore) CreateWorkout(workout *Workout) (*Workout, error) {
+	if workout.Title == "" {
+		return nil, fmt.Errorf("workout title is required")
+	}
+
 	tx, err := s.db.Begin()
 	if err != nil {
 		return nil, err
@@ -55,6 +62,7 @@ func (s *PostgresWorkoutStore) CreateWorkout(workout *Workout) (*Workout, error)
 		return nil, err
 	}
 
+	insertedEntries := make([]WorkoutEntry, 0, len(workout.Entries))
 	for _, entry := range workout.Entries {
 		query = `INSERT INTO workout_entries (workout_id, exercise_name, sets, reps, duration_seconds, weight, notes, order_index)
 			VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`
@@ -62,10 +70,9 @@ func (s *PostgresWorkoutStore) CreateWorkout(workout *Workout) (*Workout, error)
 		if err != nil {
 			return nil, err
 		}
-
-		workout.Entries = append(workout.Entries, entry)
-
+		insertedEntries = append(insertedEntries, entry)
 	}
+	workout.Entries = insertedEntries
 
 	return workout, tx.Commit()
 }
