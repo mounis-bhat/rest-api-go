@@ -3,6 +3,7 @@ package store
 import (
 	"database/sql"
 	"fmt"
+	"time"
 )
 
 type Workout struct {
@@ -11,8 +12,8 @@ type Workout struct {
 	Description     string         `json:"description"`
 	DurationMinutes int            `json:"duration_minutes"`
 	CaloriesBurned  int            `json:"calories_burned"` // in kcal
-	CreatedAt       string         `json:"created_at"`
-	UpdatedAt       string         `json:"updated_at"`
+	CreatedAt       time.Time      `json:"created_at"`
+	UpdatedAt       time.Time      `json:"updated_at"`
 	Entries         []WorkoutEntry `json:"entries"`
 }
 
