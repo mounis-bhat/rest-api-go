@@ -81,10 +81,10 @@ func (s *PostgresWorkoutStore) CreateWorkout(workout *Workout) (*Workout, error)
 }
 
 func (s *PostgresWorkoutStore) GetWorkoutById(id int64) (*Workout, error) {
-	query := `SELECT id, title, description, duration_minutes, calories_burned, created_at, updated_at
+	query := `SELECT id, user_id, title, description, duration_minutes, calories_burned, created_at, updated_at
 		FROM workouts WHERE id = $1`
 	workout := &Workout{}
-	err := s.db.QueryRow(query, id).Scan(&workout.ID, &workout.Title, &workout.Description, &workout.DurationMinutes, &workout.CaloriesBurned, &workout.CreatedAt, &workout.UpdatedAt)
+	err := s.db.QueryRow(query, id).Scan(&workout.ID, &workout.UserID, &workout.Title, &workout.Description, &workout.DurationMinutes, &workout.CaloriesBurned, &workout.CreatedAt, &workout.UpdatedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -176,7 +176,7 @@ func (s *PostgresWorkoutStore) DeleteWorkout(id int64) error {
 }
 
 func (s *PostgresWorkoutStore) GetAllWorkouts() ([]*Workout, error) {
-	query := `SELECT id, title, description, duration_minutes, calories_burned, created_at, updated_at
+	query := `SELECT id, user_id, title, description, duration_minutes, calories_burned, created_at, updated_at
 		FROM workouts`
 	rows, err := s.db.Query(query)
 	if err != nil {
@@ -187,7 +187,7 @@ func (s *PostgresWorkoutStore) GetAllWorkouts() ([]*Workout, error) {
 	workouts := []*Workout{}
 	for rows.Next() {
 		workout := &Workout{}
-		err := rows.Scan(&workout.ID, &workout.Title, &workout.Description, &workout.DurationMinutes, &workout.CaloriesBurned, &workout.CreatedAt, &workout.UpdatedAt)
+		err := rows.Scan(&workout.ID, &workout.UserID, &workout.Title, &workout.Description, &workout.DurationMinutes, &workout.CaloriesBurned, &workout.CreatedAt, &workout.UpdatedAt)
 		if err != nil {
 			return nil, err
 		}
