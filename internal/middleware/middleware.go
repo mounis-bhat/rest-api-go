@@ -22,6 +22,7 @@ func SetUser(r *http.Request, user *store.User) *http.Request {
 	ctx := context.WithValue(r.Context(), UserContextKey, user)
 	return r.WithContext(ctx)
 }
+
 func GetUser(r *http.Request) *store.User {
 	user, ok := r.Context().Value(UserContextKey).(*store.User)
 	if !ok {
@@ -32,7 +33,7 @@ func GetUser(r *http.Request) *store.User {
 
 func (m *UserMiddleware) Authenticate(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add(("Vary"), "Authorization")
+		w.Header().Add("Vary", "Authorization")
 		authHeader := r.Header.Get("Authorization")
 
 		if authHeader == "" {
@@ -67,7 +68,7 @@ func (m *UserMiddleware) Authenticate(next http.Handler) http.Handler {
 			return
 		}
 
-		SetUser(r, user)
+		r = SetUser(r, user)
 		next.ServeHTTP(w, r)
 	})
 }

@@ -69,7 +69,7 @@ func (s *PostgresUserStore) GetUserToken(scope, tokenPlaintext string) (*User, e
 	query := `SELECT u.id, u.username, u.email, u.password_hash, u.created_at, u.updated_at
 		FROM users u
 		INNER JOIN tokens t ON u.id = t.user_id
-		WHERE t.scope = $1 AND t.token_hash = $2 AND t.expires_at > $3`
+		WHERE t.scope = $1 AND t.hash = $2 AND t.expiry > $3`
 
 	user := &User{
 		PasswordHash: password{},
@@ -90,9 +90,7 @@ func (s *PostgresUserStore) GetUserToken(scope, tokenPlaintext string) (*User, e
 	if err != nil {
 		return nil, err
 	}
-	if !user.PasswordHash.Check(tokenPlaintext) {
-		return nil, fmt.Errorf("invalid token")
-	}
+
 	return user, nil
 }
 
