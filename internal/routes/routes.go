@@ -8,20 +8,23 @@ import (
 func InitializeRoutes(app *app.Application) *chi.Mux {
 	r := chi.NewRouter()
 
+	r.Group(func(r chi.Router) {
+		r.Use(app.Middleware.Authenticate)
+
+		r.Get("/workouts/{id}", app.Middleware.RequireUser(app.WorkoutHandler.HandleGetWorkoutByID))
+		r.Post("/workouts", app.Middleware.RequireUser(app.WorkoutHandler.HandleCreateWorkout))
+		r.Put("/workouts/{id}", app.Middleware.RequireUser(app.WorkoutHandler.HandleUpdateWorkout))
+		r.Delete("/workouts/{id}", app.Middleware.RequireUser(app.WorkoutHandler.HandleDeleteWorkout))
+		r.Get("/workouts", app.Middleware.RequireUser(app.WorkoutHandler.HandleGetAllWorkouts))
+
+		r.Get("/user", app.Middleware.RequireUser(app.UserHandler.HandleGetUserByUsername))
+		r.Put("/users/{id}", app.Middleware.RequireUser(app.UserHandler.HandleUpdateUser))
+		r.Delete("/users/{id}", app.Middleware.RequireUser(app.UserHandler.HandleDeleteUser))
+		r.Get("/users", app.Middleware.RequireUser(app.UserHandler.HandleGetAllUsers))
+	})
+
 	r.Get("/health", app.HealthCheckHandler)
-
-	r.Get("/workouts/{id}", app.WorkoutHandler.HandleGetWorkoutByID)
-	r.Post("/workouts", app.WorkoutHandler.HandleCreateWorkout)
-	r.Put("/workouts/{id}", app.WorkoutHandler.HandleUpdateWorkout)
-	r.Delete("/workouts/{id}", app.WorkoutHandler.HandleDeleteWorkout)
-	r.Get("/workouts", app.WorkoutHandler.HandleGetAllWorkouts)
-
 	r.Post("/register", app.UserHandler.HandleCreateUser)
-	r.Get("/user", app.UserHandler.HandleGetUserByUsername)
-	r.Put("/users/{id}", app.UserHandler.HandleUpdateUser)
-	r.Delete("/users/{id}", app.UserHandler.HandleDeleteUser)
-	r.Get("/users", app.UserHandler.HandleGetAllUsers)
-
 	r.Post("/tokens/auth", app.TokenHandler.HandleCreateToken)
 
 	return r

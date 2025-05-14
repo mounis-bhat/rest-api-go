@@ -8,6 +8,7 @@ import (
 
 type Workout struct {
 	ID              int            `json:"id"`
+	UserID          int64          `json:"user_id"`
 	Title           string         `json:"title"`
 	Description     string         `json:"description"`
 	DurationMinutes int            `json:"duration_minutes"`
@@ -42,6 +43,7 @@ type WorkoutStore interface {
 	UpdateWorkout(workout *Workout) error
 	DeleteWorkout(id int64) error
 	GetAllWorkouts() ([]*Workout, error)
+	GetWorkoutOwner(id int64) (int, error)
 }
 
 func (s *PostgresWorkoutStore) CreateWorkout(workout *Workout) (*Workout, error) {
@@ -55,10 +57,10 @@ func (s *PostgresWorkoutStore) CreateWorkout(workout *Workout) (*Workout, error)
 	}
 	defer tx.Rollback()
 
-	query := `INSERT INTO workouts (title, description, duration_minutes, calories_burned)
-		VALUES ($1, $2, $3, $4) RETURNING id, created_at, updated_at`
+	query := `INSERT INTO workouts (user_id, title, description, duration_minutes, calories_burned)
+		VALUES ($1, $2, $3, $4, $5) RETURNING id, created_at, updated_at`
 
-	err = tx.QueryRow(query, workout.Title, workout.Description, workout.DurationMinutes, workout.CaloriesBurned).Scan(&workout.ID, &workout.CreatedAt, &workout.UpdatedAt)
+	err = tx.QueryRow(query, workout.UserID, workout.Title, workout.Description, workout.DurationMinutes, workout.CaloriesBurned).Scan(&workout.ID, &workout.CreatedAt, &workout.UpdatedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -221,4 +223,14 @@ func (s *PostgresWorkoutStore) GetAllWorkouts() ([]*Workout, error) {
 	}
 
 	return workouts, nil
+}
+
+func (s *PostgresWorkoutStore) GetWorkoutOwner(id int64) (int, error) {
+	query := `SELECT user_id FROM workouts WHERE id = $1`
+	var userID int
+	err := s.db.QueryRow(query, id).Scan(&userID)
+	if err != nil {
+		return 0, err
+	}
+	return userID, nil
 }

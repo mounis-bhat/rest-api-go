@@ -6,7 +6,7 @@
 
 A robust REST API for managing workout routines built with Go, Chi router, and PostgreSQL.
 
-*Last updated: May 4, 2025*
+*Last updated: May 14, 2025*
 
 ## Overview
 
@@ -27,7 +27,6 @@ This project provides a RESTful API for creating and retrieving workout routines
 
 ```
 rest-api-go/
-├── docker-compose.yml    # Docker setup for PostgreSQL
 ├── go.mod                # Go module definition
 ├── go.sum                # Go module checksums
 ├── main.go               # Application entry point
@@ -53,18 +52,13 @@ rest-api-go/
 ## Prerequisites
 
 - Go 1.24.2+
-- PostgreSQL 17+ (or Docker for containerized setup)
-- Docker and Docker Compose (optional, for easier setup)
+- PostgreSQL 17+ (containerized or standalone)
 
 ## Getting Started
 
 ### Setting up the database
 
-Use the provided Docker Compose file to start a PostgreSQL instance:
-
-```bash
-docker-compose up -d
-```
+Ensure you have a PostgreSQL instance running. You can use any PostgreSQL setup, whether containerized or standalone.
 
 ### Running the application
 
@@ -86,13 +80,110 @@ go run main.go -port 3000
 GET /health
 ```
 
-Returns a simple "OK" response to verify the server is running.
+Example request:
 
 ```bash
 curl http://localhost:8080/health
 ```
 
-### Create a New Workout
+### User Management
+
+#### Register a New User
+
+```
+POST /register
+```
+
+Example request:
+
+```bash
+curl -X POST \
+  http://localhost:8080/register \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "username": "newuser",
+    "email": "newuser@example.com",
+    "password": "Password123"
+  }'
+```
+
+#### Get User by Username
+
+```
+GET /user
+```
+
+Example request:
+
+```bash
+curl http://localhost:8080/user
+```
+
+#### Update a User
+
+```
+PUT /users/{id}
+```
+
+Example request:
+
+```bash
+curl -X PUT \
+  http://localhost:8080/users/1 \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "email": "updateduser@example.com",
+    "password": "NewPassword123"
+  }'
+```
+
+#### Delete a User
+
+```
+DELETE /users/{id}
+```
+
+Example request:
+
+```bash
+curl -X DELETE http://localhost:8080/users/1
+```
+
+#### List All Users
+
+```
+GET /users
+```
+
+Example request:
+
+```bash
+curl http://localhost:8080/users
+```
+
+### Token Management
+
+#### Create an Authentication Token
+
+```
+POST /tokens/auth
+```
+
+Example request:
+
+```bash
+curl -X POST \
+  http://localhost:8080/tokens/auth \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "username": "existinguser",
+    "password": "Password123"
+  }'
+```
+
+### Workout Management
+
+#### Create a New Workout
 
 ```
 POST /workouts
@@ -128,7 +219,7 @@ curl -X POST \
   }'
 ```
 
-### Get Workout by ID
+#### Get Workout by ID
 
 ```
 GET /workouts/{id}
@@ -140,7 +231,7 @@ Example request:
 curl http://localhost:8080/workouts/1
 ```
 
-### List All Workouts
+#### List All Workouts
 
 ```
 GET /workouts
@@ -152,7 +243,7 @@ Example request:
 curl http://localhost:8080/workouts
 ```
 
-### Update a Workout
+#### Update a Workout
 
 ```
 PUT /workouts/{id}
@@ -190,7 +281,7 @@ curl -X PUT \
   }'
 ```
 
-### Delete a Workout
+#### Delete a Workout
 
 ```
 DELETE /workouts/{id}
@@ -201,46 +292,6 @@ Example request:
 ```bash
 curl -X DELETE http://localhost:8080/workouts/1
 ```
-
-## Data Models
-
-### Workout
-
-```go
-type Workout struct {
-    ID              int            `json:"id"`
-    Title           string         `json:"title"`
-    Description     string         `json:"description"`
-    DurationMinutes int            `json:"duration_minutes"`
-    CaloriesBurned  int            `json:"calories_burned"`
-    CreatedAt       string         `json:"created_at"`
-    UpdatedAt       string         `json:"updated_at"`
-    Entries         []WorkoutEntry `json:"entries"`
-}
-```
-
-### Workout Entry
-
-```go
-type WorkoutEntry struct {
-    ID              int      `json:"id"`
-    ExerciseName    string   `json:"exercise_name"`
-    Sets            int      `json:"sets"`
-    Reps            *int     `json:"reps"`
-    DurationSeconds *int     `json:"duration_seconds"`
-    Weight          *float64 `json:"weight"`
-    Notes           string   `json:"notes"`
-    OrderIndex      int      `json:"order_index"`
-}
-```
-
-## Database Schema
-
-The application uses three main tables:
-
-1. `users` - Stores user information (not currently used in the API)
-2. `workouts` - Stores workout routines
-3. `workout_entries` - Stores individual exercises within workouts
 
 ## Development
 

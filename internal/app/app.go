@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/mounis-bhat/rest-api-go/internal/api"
+	"github.com/mounis-bhat/rest-api-go/internal/middleware"
 	"github.com/mounis-bhat/rest-api-go/internal/store"
 	"github.com/mounis-bhat/rest-api-go/migrations"
 )
@@ -16,6 +17,7 @@ type Application struct {
 	WorkoutHandler *api.WorkoutHandler
 	UserHandler    *api.UserHandler
 	TokenHandler   *api.TokenHandler
+	Middleware     middleware.UserMiddleware
 	DB             *sql.DB
 }
 
@@ -40,12 +42,14 @@ func NewApplication() (*Application, error) {
 	workoutHandler := api.NewWorkoutHandler(workoutStore, logger)
 	userHandler := api.NewUserHandler(userStore, logger)
 	tokenHandler := api.NewTokenHandler(userStore, tokenStore, logger)
+	middlewareHandler := middleware.UserMiddleware{UserStore: userStore}
 
 	app := &Application{
 		Logger:         logger,
 		WorkoutHandler: workoutHandler,
 		UserHandler:    userHandler,
 		TokenHandler:   tokenHandler,
+		Middleware:     middlewareHandler,
 		DB:             db,
 	}
 	return app, nil
