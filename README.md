@@ -27,26 +27,33 @@ This project provides a RESTful API for creating and retrieving workout routines
 
 ```
 rest-api-go/
+├── docker-compose.yml    # Docker composition file
 ├── go.mod                # Go module definition
 ├── go.sum                # Go module checksums
 ├── main.go               # Application entry point
 ├── internal/             # Internal application code
 │   ├── api/              # API handlers
-│   │   └── workout_handler.go
+│   │   └── handler.go
 │   ├── app/              # Application setup
 │   │   └── app.go
+│   ├── doc/              # API documentation
+│   │   └── openapi.json
+│   ├── middleware/       # HTTP middleware
+│   │   └── middleware.go
 │   ├── routes/           # HTTP routes
 │   │   └── routes.go
 │   ├── store/            # Database access
 │   │   ├── database.go
-│   │   └── workout_store.go
+│   │   ├── tokens.go
+│   │   ├── feature_store.go
+│   │   └── feature_store_test.go
+│   ├── tokens/           # Token utilities
+│   │   └── tokens.go
 │   └── utils/            # Utility functions
 │       └── utils.go
 └── migrations/           # Database migrations
     ├── fs.go             # Embedded migrations
-    ├── 00001_users.sql
-    ├── 00002_workouts.sql
-    └── 00003_workout_entries.sql
+    └── migration_file.sql
 ```
 
 ## Prerequisites
@@ -72,226 +79,9 @@ By default, the server runs on port 8080. You can specify a different port using
 go run main.go -port 3000
 ```
 
-## API Endpoints
+## Documentation
 
-### Health Check
-
-```
-GET /health
-```
-
-Example request:
-
-```bash
-curl http://localhost:8080/health
-```
-
-### User Management
-
-#### Register a New User
-
-```
-POST /register
-```
-
-Example request:
-
-```bash
-curl -X POST \
-  http://localhost:8080/register \
-  -H 'Content-Type: application/json' \
-  -d '{
-    "username": "newuser",
-    "email": "newuser@example.com",
-    "password": "Password123"
-  }'
-```
-
-#### Get User by Username
-
-```
-GET /user
-```
-
-Example request:
-
-```bash
-curl http://localhost:8080/user
-```
-
-#### Update a User
-
-```
-PUT /users/{id}
-```
-
-Example request:
-
-```bash
-curl -X PUT \
-  http://localhost:8080/users/1 \
-  -H 'Content-Type: application/json' \
-  -d '{
-    "email": "updateduser@example.com",
-    "password": "NewPassword123"
-  }'
-```
-
-#### Delete a User
-
-```
-DELETE /users/{id}
-```
-
-Example request:
-
-```bash
-curl -X DELETE http://localhost:8080/users/1
-```
-
-#### List All Users
-
-```
-GET /users
-```
-
-Example request:
-
-```bash
-curl http://localhost:8080/users
-```
-
-### Token Management
-
-#### Create an Authentication Token
-
-```
-POST /tokens/auth
-```
-
-Example request:
-
-```bash
-curl -X POST \
-  http://localhost:8080/tokens/auth \
-  -H 'Content-Type: application/json' \
-  -d '{
-    "username": "existinguser",
-    "password": "Password123"
-  }'
-```
-
-### Workout Management
-
-#### Create a New Workout
-
-```
-POST /workouts
-```
-
-Example request:
-
-```bash
-curl -X POST \
-  http://localhost:8080/workouts \
-  -H 'Content-Type: application/json' \
-  -d '{
-    "title": "Morning Cardio",
-    "description": "Quick morning cardio routine",
-    "duration_minutes": 30,
-    "calories_burned": 250,
-    "entries": [
-      {
-        "exercise_name": "Running",
-        "sets": 1,
-        "duration_seconds": 1200,
-        "notes": "Moderate pace",
-        "order_index": 0
-      },
-      {
-        "exercise_name": "Jumping Jacks",
-        "sets": 3,
-        "reps": 20,
-        "notes": "Full extension",
-        "order_index": 1
-      }
-    ]
-  }'
-```
-
-#### Get Workout by ID
-
-```
-GET /workouts/{id}
-```
-
-Example request:
-
-```bash
-curl http://localhost:8080/workouts/1
-```
-
-#### List All Workouts
-
-```
-GET /workouts
-```
-
-Example request:
-
-```bash
-curl http://localhost:8080/workouts
-```
-
-#### Update a Workout
-
-```
-PUT /workouts/{id}
-```
-
-Example request:
-
-```bash
-curl -X PUT \
-  http://localhost:8080/workouts/1 \
-  -H 'Content-Type: application/json' \
-  -d '{
-    "title": "Updated Morning Cardio",
-    "description": "Improved morning cardio routine",
-    "duration_minutes": 45,
-    "calories_burned": 300,
-    "entries": [
-      {
-        "id": 1,
-        "exercise_name": "Running",
-        "sets": 1,
-        "duration_seconds": 1500,
-        "notes": "Faster pace",
-        "order_index": 0
-      },
-      {
-        "id": 2,
-        "exercise_name": "Jumping Jacks",
-        "sets": 4,
-        "reps": 25,
-        "notes": "Full extension",
-        "order_index": 1
-      }
-    ]
-  }'
-```
-
-#### Delete a Workout
-
-```
-DELETE /workouts/{id}
-```
-
-Example request:
-
-```bash
-curl -X DELETE http://localhost:8080/workouts/1
-```
+API documentation is available in the OpenAPI format. You can find the specification in the `internal/doc/openapi.json` file.
 
 ## Development
 
@@ -304,6 +94,7 @@ This project uses [Goose v3](https://github.com/pressly/goose/v3) for database m
 1. Create a new handler in the `internal/api` directory
 2. Register the handler in the `internal/app/app.go` file
 3. Add routes in the `internal/routes/routes.go` file
+4. Update the OpenAPI documentation in `internal/doc/openapi.json`
 
 ## License
 

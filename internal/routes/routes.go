@@ -26,6 +26,7 @@ func InitializeRoutes(app *app.Application) *chi.Mux {
 	r.Get("/health", app.HealthCheckHandler)
 	r.Post("/register", app.UserHandler.HandleCreateUser)
 	r.Post("/tokens/auth", app.TokenHandler.HandleCreateToken)
+	r.Get("/reference", app.ReferenceHandler.HandleGetReference)
 
 	return r
 }
