@@ -6,11 +6,17 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/joho/godotenv"
 	"github.com/mounis-bhat/rest-api-go/internal/app"
 	"github.com/mounis-bhat/rest-api-go/internal/routes"
 )
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		panic(err)
+	}
+
 	var port int
 
 	flag.IntVar(&port, "port", 8080, "Port to run the server on")
