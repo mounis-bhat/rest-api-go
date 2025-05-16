@@ -13,6 +13,10 @@
     {
       "url": "http://localhost:8080",
       "description": "Local development server"
+    },
+    {
+      "url": "https://rest-api-go-grd1.onrender.com",
+      "description": "Production server"
     }
   ],
   "components": {

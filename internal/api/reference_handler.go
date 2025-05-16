@@ -2,14 +2,12 @@ package api
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/MarceloPetrucio/go-scalar-api-reference"
 )
 
 type ReferenceHandler struct {
-	logger *log.Logger
 }
 
 func NewReferenceHandler() *ReferenceHandler {
