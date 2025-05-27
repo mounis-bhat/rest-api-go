@@ -14,13 +14,12 @@ import (
 )
 
 type Application struct {
-	Logger           *log.Logger
-	WorkoutHandler   *api.WorkoutHandler
-	UserHandler      *api.UserHandler
-	TokenHandler     *api.TokenHandler
-	Middleware       middleware.UserMiddleware
-	ReferenceHandler *api.ReferenceHandler
-	DB               *sql.DB
+	Logger         *log.Logger
+	WorkoutHandler *api.WorkoutHandler
+	UserHandler    *api.UserHandler
+	TokenHandler   *api.TokenHandler
+	Middleware     middleware.UserMiddleware
+	DB             *sql.DB
 }
 
 func NewApplication() (*Application, error) {
@@ -45,16 +44,14 @@ func NewApplication() (*Application, error) {
 	userHandler := api.NewUserHandler(userStore, logger)
 	tokenHandler := api.NewTokenHandler(userStore, tokenStore, logger)
 	middlewareHandler := middleware.UserMiddleware{UserStore: userStore}
-	referenceHandler := api.NewReferenceHandler()
 
 	app := &Application{
-		Logger:           logger,
-		WorkoutHandler:   workoutHandler,
-		UserHandler:      userHandler,
-		TokenHandler:     tokenHandler,
-		Middleware:       middlewareHandler,
-		ReferenceHandler: referenceHandler,
-		DB:               db,
+		Logger:         logger,
+		WorkoutHandler: workoutHandler,
+		UserHandler:    userHandler,
+		TokenHandler:   tokenHandler,
+		Middleware:     middlewareHandler,
+		DB:             db,
 	}
 	return app, nil
 }

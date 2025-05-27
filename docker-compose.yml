@@ -1,23 +1,10 @@
 services:
-  postgres:
-    image: postgres:17.4
-    container_name: postgres-db
-    environment:
-      POSTGRES_USER: mounis
-      POSTGRES_PASSWORD: 3132
-      POSTGRES_DB: db
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    restart: unless-stopped
-  
   testDb:
     image: postgres:17.4
     container_name: test-db
     environment:
       POSTGRES_USER: mounis
-      POSTGRES_PASSWORD: 3132
+      POSTGRES_PASSWORD: password
       POSTGRES_DB: test_db
     ports:
       - "5433:5432"
