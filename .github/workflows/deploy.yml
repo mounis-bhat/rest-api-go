@@ -26,12 +26,18 @@ jobs:
           mkdir -p dist
           go build -o dist/workout-api ./main.go
 
-      - name: Deploy to VPS
+      - name: Create .env file
+        run: |
+          echo "DATABASE_URL=$DATABASE_URL" > dist/.env
+
+      - name: Deploy binary and .env to VPS
         uses: appleboy/scp-action@v0.1.4
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.PRIVATE_KEY }}
           passphrase: ${{ secrets.PASSPHRASE }}
-          source: "dist/workout-api"
-          target: "/home/mounis/workout-api"
+          source: |
+            dist/workout-api
+            dist/.env
+          target: /var/www/workouts-api
