@@ -39,3 +39,13 @@ jobs:
           passphrase: ${{ secrets.PASSPHRASE }}
           source: "dist/*"
           target: "/var/www/workouts-api"
+
+      - name: Restart workout-api service
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.PRIVATE_KEY }}
+          passphrase: ${{ secrets.PASSPHRASE }}
+          script: |
+            sudo systemctl restart workout-api.service
