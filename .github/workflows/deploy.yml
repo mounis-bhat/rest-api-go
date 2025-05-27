@@ -48,4 +48,4 @@ jobs:
           key: ${{ secrets.PRIVATE_KEY }}
           passphrase: ${{ secrets.PASSPHRASE }}
           script: |
-            sudo systemctl restart workout-api.service
+            sudo /bin/systemctl restart workout-api.service
