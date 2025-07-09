@@ -19,18 +19,36 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
-          go-version: '1.24.0'
+          go-version: "1.24.0"
+
+      - name: Install Swagger CLI
+        run: go install github.com/swaggo/swag/cmd/swag@latest
+
+      - name: Update host for production
+        run: |
+          sed -i 's/@host\s*localhost:8080/@host workouts.mounis.net/' main.go
+          sed -i 's/@schemes\s*http/@schemes https/' main.go
+
+      - name: Generate Swagger documentation
+        run: swag init
+
+      - name: Install dependencies
+        run: go mod download
 
       - name: Build Go binary
         run: |
           mkdir -p dist
-          go build -o dist/workout-api ./main.go
+          go build -o dist/workout-api .
 
       - name: Create .env file with DATABASE_URL
         run: |
           echo "DATABASE_URL=${DATABASE_URL}" > dist/.env
 
-      - name: Deploy binary and .env to VPS
+      - name: Copy docs to dist
+        run: |
+          cp -r docs dist/
+
+      - name: Deploy binary, docs, and .env to VPS
         uses: appleboy/scp-action@v0.1.4
         with:
           host: ${{ secrets.HOST }}

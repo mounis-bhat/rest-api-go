@@ -12,9 +12,21 @@ import (
 )
 
 type registerUserRequest struct {
-	Username string `json:"username"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	Username string `json:"username" example:"johndoe" validate:"required,min=3,max=20"`       // Username for the new user
+	Email    string `json:"email" example:"john@example.com" validate:"required,email"`        // Email address for the new user
+	Password string `json:"password" example:"SecurePass123" validate:"required,min=8,max=20"` // Password for the new user
+}
+
+type UserResponse struct {
+	ID        int64  `json:"id" example:"1"`                            // User ID
+	Username  string `json:"username" example:"johndoe"`                // Username
+	Email     string `json:"email" example:"john@example.com"`          // Email address
+	CreatedAt string `json:"created_at" example:"2024-01-01T12:00:00Z"` // Creation timestamp
+	UpdatedAt string `json:"updated_at" example:"2024-01-01T12:00:00Z"` // Last update timestamp
+}
+
+type ErrorResponse struct {
+	Error string `json:"error" example:"Invalid request payload"` // Error message
 }
 
 type UserHandler struct {
@@ -68,6 +80,19 @@ func (h *UserHandler) validateRegisterRequest(reg *registerUserRequest) error {
 	return nil
 }
 
+// HandleCreateUser creates a new user account
+//
+//	@Summary		Register a new user
+//	@Description	Create a new user account with username, email, and password
+//	@Tags			Authentication
+//	@Accept			json
+//	@Produce		json
+//	@Param			user	body		registerUserRequest	true	"User registration data"
+//	@Success		201		{object}	UserResponse		"User created successfully"
+//	@Failure		400		{object}	ErrorResponse		"Invalid request data"
+//	@Failure		409		{object}	ErrorResponse		"User already exists"
+//	@Failure		500		{object}	ErrorResponse		"Internal server error"
+//	@Router			/register [post]
 func (h *UserHandler) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 	var reg registerUserRequest
 	err := json.NewDecoder(r.Body).Decode(&reg)
@@ -106,6 +131,22 @@ func (h *UserHandler) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// HandleUpdateUser updates an existing user's information
+//
+//	@Summary		Update user information
+//	@Description	Update an existing user's username, email, and password
+//	@Tags			Users
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			id		path		int					true	"User ID"
+//	@Param			user	body		registerUserRequest	true	"Updated user data"
+//	@Success		200		{object}	UserResponse		"User updated successfully"
+//	@Failure		400		{object}	ErrorResponse		"Invalid request data"
+//	@Failure		401		{object}	ErrorResponse		"Unauthorized"
+//	@Failure		404		{object}	ErrorResponse		"User not found"
+//	@Failure		500		{object}	ErrorResponse		"Internal server error"
+//	@Router			/users/{id} [put]
 func (h *UserHandler) HandleUpdateUser(w http.ResponseWriter, r *http.Request) {
 	userId, err := utils.ReadIdParam(r)
 	if err != nil {
@@ -148,6 +189,21 @@ func (h *UserHandler) HandleUpdateUser(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJSON(w, http.StatusOK, utils.Envelope{"user": user})
 }
 
+// HandleGetUserByUsername retrieves a user by username
+//
+//	@Summary		Get user by username
+//	@Description	Retrieve a user's information by their username
+//	@Tags			Users
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			username	query		string			true	"Username to search for"
+//	@Success		200			{object}	UserResponse	"User found"
+//	@Failure		400			{object}	ErrorResponse	"Invalid request parameters"
+//	@Failure		401			{object}	ErrorResponse	"Unauthorized"
+//	@Failure		404			{object}	ErrorResponse	"User not found"
+//	@Failure		500			{object}	ErrorResponse	"Internal server error"
+//	@Router			/user [get]
 func (h *UserHandler) HandleGetUserByUsername(w http.ResponseWriter, r *http.Request) {
 	username := r.URL.Query().Get("username")
 	if username == "" {
@@ -169,6 +225,21 @@ func (h *UserHandler) HandleGetUserByUsername(w http.ResponseWriter, r *http.Req
 	utils.WriteJSON(w, http.StatusOK, utils.Envelope{"user": user})
 }
 
+// HandleDeleteUser deletes a user by ID
+//
+//	@Summary		Delete user
+//	@Description	Delete a user account by ID
+//	@Tags			Users
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			id	path	int	true	"User ID"
+//	@Success		204	"User deleted successfully"
+//	@Failure		400	{object}	ErrorResponse	"Invalid user ID"
+//	@Failure		401	{object}	ErrorResponse	"Unauthorized"
+//	@Failure		404	{object}	ErrorResponse	"User not found"
+//	@Failure		500	{object}	ErrorResponse	"Internal server error"
+//	@Router			/users/{id} [delete]
 func (h *UserHandler) HandleDeleteUser(w http.ResponseWriter, r *http.Request) {
 	userId, err := utils.ReadIdParam(r)
 	if err != nil {
@@ -187,6 +258,19 @@ func (h *UserHandler) HandleDeleteUser(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJSON(w, http.StatusNoContent, nil)
 }
 
+// HandleGetAllUsers retrieves all users
+//
+//	@Summary		Get all users
+//	@Description	Retrieve a list of all users in the system
+//	@Tags			Users
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Success		200	{array}		UserResponse	"List of users"
+//	@Failure		401	{object}	ErrorResponse	"Unauthorized"
+//	@Failure		404	{object}	ErrorResponse	"No users found"
+//	@Failure		500	{object}	ErrorResponse	"Internal server error"
+//	@Router			/users [get]
 func (h *UserHandler) HandleGetAllUsers(w http.ResponseWriter, r *http.Request) {
 	users, err := h.userStore.GetAllUsers()
 	if err != nil {

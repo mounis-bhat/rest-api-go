@@ -1,0 +1,644 @@
+basePath: /
+definitions:
+  api.ErrorResponse:
+    properties:
+      error:
+        description: Error message
+        example: Invalid request payload
+        type: string
+    type: object
+  api.TokenResponse:
+    properties:
+      auth_token:
+        description: JWT authentication token
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        type: string
+    type: object
+  api.UserResponse:
+    properties:
+      created_at:
+        description: Creation timestamp
+        example: "2024-01-01T12:00:00Z"
+        type: string
+      email:
+        description: Email address
+        example: john@example.com
+        type: string
+      id:
+        description: User ID
+        example: 1
+        type: integer
+      updated_at:
+        description: Last update timestamp
+        example: "2024-01-01T12:00:00Z"
+        type: string
+      username:
+        description: Username
+        example: johndoe
+        type: string
+    type: object
+  api.WorkoutEntryResponse:
+    properties:
+      duration_seconds:
+        description: Duration in seconds
+        example: 60
+        type: integer
+      exercise_name:
+        description: Name of the exercise
+        example: Push ups
+        type: string
+      id:
+        description: Entry ID
+        example: 1
+        type: integer
+      notes:
+        description: Additional notes
+        example: Good form maintained
+        type: string
+      order_index:
+        description: Order of exercise in workout
+        example: 1
+        type: integer
+      reps:
+        description: Number of repetitions
+        example: 15
+        type: integer
+      sets:
+        description: Number of sets
+        example: 3
+        type: integer
+      weight:
+        description: Weight in kg
+        example: 75.5
+        type: number
+    type: object
+  api.WorkoutResponse:
+    properties:
+      calories_burned:
+        description: Calories burned
+        example: 350
+        type: integer
+      created_at:
+        description: Creation timestamp
+        example: "2024-01-01T12:00:00Z"
+        type: string
+      description:
+        description: Workout description
+        example: High intensity cardio
+        type: string
+      duration_minutes:
+        description: Duration in minutes
+        example: 45
+        type: integer
+      entries:
+        description: List of workout exercises
+        items:
+          $ref: '#/definitions/api.WorkoutEntryResponse'
+        type: array
+      id:
+        description: Workout ID
+        example: 1
+        type: integer
+      title:
+        description: Workout title
+        example: Morning Cardio
+        type: string
+      updated_at:
+        description: Last update timestamp
+        example: "2024-01-01T12:00:00Z"
+        type: string
+      user_id:
+        description: User ID who owns the workout
+        example: 1
+        type: integer
+    type: object
+  api.createTokenRequest:
+    properties:
+      password:
+        description: Password for authentication
+        example: SecurePass123
+        type: string
+      username:
+        description: Username for authentication
+        example: johndoe
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  api.registerUserRequest:
+    properties:
+      email:
+        description: Email address for the new user
+        example: john@example.com
+        type: string
+      password:
+        description: Password for the new user
+        example: SecurePass123
+        maxLength: 20
+        minLength: 8
+        type: string
+      username:
+        description: Username for the new user
+        example: johndoe
+        maxLength: 20
+        minLength: 3
+        type: string
+    required:
+    - email
+    - password
+    - username
+    type: object
+  store.Workout:
+    properties:
+      calories_burned:
+        description: in kcal
+        type: integer
+      created_at:
+        type: string
+      description:
+        type: string
+      duration_minutes:
+        type: integer
+      entries:
+        items:
+          $ref: '#/definitions/store.WorkoutEntry'
+        type: array
+      id:
+        type: integer
+      title:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  store.WorkoutEntry:
+    properties:
+      duration_seconds:
+        type: integer
+      exercise_name:
+        type: string
+      id:
+        type: integer
+      notes:
+        type: string
+      order_index:
+        type: integer
+      reps:
+        type: integer
+      sets:
+        type: integer
+      weight:
+        description: in kg
+        type: number
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: A REST API for tracking workouts and managing users.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Workout Tracker API
+  version: "1.0"
+paths:
+  /health:
+    get:
+      consumes:
+      - application/json
+      description: Check if the API service is running and healthy
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Service is healthy
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Health check
+      tags:
+      - Health
+  /register:
+    post:
+      consumes:
+      - application/json
+      description: Create a new user account with username, email, and password
+      parameters:
+      - description: User registration data
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/api.registerUserRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: User created successfully
+          schema:
+            $ref: '#/definitions/api.UserResponse'
+        "400":
+          description: Invalid request data
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "409":
+          description: User already exists
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+      summary: Register a new user
+      tags:
+      - Authentication
+  /tokens/auth:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate a user with username and password and return an auth
+        token
+      parameters:
+      - description: User credentials
+        in: body
+        name: credentials
+        required: true
+        schema:
+          $ref: '#/definitions/api.createTokenRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Authentication successful
+          schema:
+            $ref: '#/definitions/api.TokenResponse'
+        "400":
+          description: Invalid request payload
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "401":
+          description: Invalid username or password
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+      summary: Authenticate user
+      tags:
+      - Authentication
+  /user:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a user's information by their username
+      parameters:
+      - description: Username to search for
+        in: query
+        name: username
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User found
+          schema:
+            $ref: '#/definitions/api.UserResponse'
+        "400":
+          description: Invalid request parameters
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get user by username
+      tags:
+      - Users
+  /users:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of all users in the system
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of users
+          schema:
+            items:
+              $ref: '#/definitions/api.UserResponse'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "404":
+          description: No users found
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get all users
+      tags:
+      - Users
+  /users/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a user account by ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: User deleted successfully
+        "400":
+          description: Invalid user ID
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete user
+      tags:
+      - Users
+    put:
+      consumes:
+      - application/json
+      description: Update an existing user's username, email, and password
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated user data
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/api.registerUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User updated successfully
+          schema:
+            $ref: '#/definitions/api.UserResponse'
+        "400":
+          description: Invalid request data
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update user information
+      tags:
+      - Users
+  /workouts:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a list of all workouts in the system
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of workouts
+          schema:
+            items:
+              $ref: '#/definitions/api.WorkoutResponse'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get all workouts
+      tags:
+      - Workouts
+    post:
+      consumes:
+      - application/json
+      description: Create a new workout with exercises for the authenticated user
+      parameters:
+      - description: Workout data
+        in: body
+        name: workout
+        required: true
+        schema:
+          $ref: '#/definitions/store.Workout'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Workout created successfully
+          schema:
+            $ref: '#/definitions/api.WorkoutResponse'
+        "400":
+          description: Invalid request payload
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a new workout
+      tags:
+      - Workouts
+  /workouts/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a workout by ID (only by the owner)
+      parameters:
+      - description: Workout ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Workout deleted successfully
+        "400":
+          description: Invalid workout ID
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "403":
+          description: Forbidden - not the owner
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "404":
+          description: Workout not found
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete workout
+      tags:
+      - Workouts
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a specific workout and its exercises by workout ID
+      parameters:
+      - description: Workout ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Workout details
+          schema:
+            $ref: '#/definitions/api.WorkoutResponse'
+        "400":
+          description: Invalid workout ID
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "404":
+          description: Workout not found
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get workout by ID
+      tags:
+      - Workouts
+    put:
+      consumes:
+      - application/json
+      description: Update an existing workout and its exercises (only by the owner)
+      parameters:
+      - description: Workout ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated workout data
+        in: body
+        name: workout
+        required: true
+        schema:
+          $ref: '#/definitions/store.Workout'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Workout updated successfully
+          schema:
+            $ref: '#/definitions/api.WorkoutResponse'
+        "400":
+          description: Invalid request data
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "403":
+          description: Forbidden - not the owner
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "404":
+          description: Workout not found
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update workout
+      tags:
+      - Workouts
+schemes:
+- http
+securityDefinitions:
+  BearerAuth:
+    description: Type "Bearer" followed by a space and JWT token.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

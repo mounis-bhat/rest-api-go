@@ -18,8 +18,12 @@ type TokenHandler struct {
 }
 
 type createTokenRequest struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
+	Username string `json:"username" example:"johndoe" validate:"required"`       // Username for authentication
+	Password string `json:"password" example:"SecurePass123" validate:"required"` // Password for authentication
+}
+
+type TokenResponse struct {
+	AuthToken string `json:"auth_token" example:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."` // JWT authentication token
 }
 
 func NewTokenHandler(userStore store.UserStore, tokenStore store.TokenStore, logger *log.Logger) *TokenHandler {
@@ -30,6 +34,19 @@ func NewTokenHandler(userStore store.UserStore, tokenStore store.TokenStore, log
 	}
 }
 
+// HandleCreateToken authenticates a user and returns an auth token
+//
+//	@Summary		Authenticate user
+//	@Description	Authenticate a user with username and password and return an auth token
+//	@Tags			Authentication
+//	@Accept			json
+//	@Produce		json
+//	@Param			credentials	body		createTokenRequest	true	"User credentials"
+//	@Success		200			{object}	TokenResponse		"Authentication successful"
+//	@Failure		400			{object}	ErrorResponse		"Invalid request payload"
+//	@Failure		401			{object}	ErrorResponse		"Invalid username or password"
+//	@Failure		500			{object}	ErrorResponse		"Internal server error"
+//	@Router			/tokens/auth [post]
 func (h *TokenHandler) HandleCreateToken(w http.ResponseWriter, r *http.Request) {
 	var req createTokenRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {

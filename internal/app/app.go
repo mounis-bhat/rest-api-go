@@ -56,6 +56,15 @@ func NewApplication() (*Application, error) {
 	return app, nil
 }
 
+// HealthCheckHandler provides a health check endpoint
+//
+//	@Summary		Health check
+//	@Description	Check if the API service is running and healthy
+//	@Tags			Health
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	{object}	map[string]string	"Service is healthy"
+//	@Router			/health [get]
 func (a *Application) HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	utils.WriteJSON(w, http.StatusOK, utils.Envelope{"status": "OK"})

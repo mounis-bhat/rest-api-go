@@ -12,6 +12,29 @@ import (
 	"github.com/mounis-bhat/rest-api-go/internal/utils"
 )
 
+type WorkoutEntryResponse struct {
+	ID              int      `json:"id" example:"1"`                       // Entry ID
+	ExerciseName    string   `json:"exercise_name" example:"Push ups"`     // Name of the exercise
+	Sets            int      `json:"sets" example:"3"`                     // Number of sets
+	Reps            *int     `json:"reps" example:"15"`                    // Number of repetitions
+	DurationSeconds *int     `json:"duration_seconds" example:"60"`        // Duration in seconds
+	Weight          *float64 `json:"weight" example:"75.5"`                // Weight in kg
+	Notes           string   `json:"notes" example:"Good form maintained"` // Additional notes
+	OrderIndex      int      `json:"order_index" example:"1"`              // Order of exercise in workout
+}
+
+type WorkoutResponse struct {
+	ID              int                    `json:"id" example:"1"`                              // Workout ID
+	UserID          int64                  `json:"user_id" example:"1"`                         // User ID who owns the workout
+	Title           string                 `json:"title" example:"Morning Cardio"`              // Workout title
+	Description     string                 `json:"description" example:"High intensity cardio"` // Workout description
+	DurationMinutes int                    `json:"duration_minutes" example:"45"`               // Duration in minutes
+	CaloriesBurned  int                    `json:"calories_burned" example:"350"`               // Calories burned
+	CreatedAt       string                 `json:"created_at" example:"2024-01-01T12:00:00Z"`   // Creation timestamp
+	UpdatedAt       string                 `json:"updated_at" example:"2024-01-01T12:00:00Z"`   // Last update timestamp
+	Entries         []WorkoutEntryResponse `json:"entries"`                                     // List of workout exercises
+}
+
 type WorkoutHandler struct {
 	workoutStore store.WorkoutStore
 	logger       *log.Logger
@@ -21,6 +44,21 @@ func NewWorkoutHandler(store store.WorkoutStore, logger *log.Logger) *WorkoutHan
 	return &WorkoutHandler{workoutStore: store, logger: logger}
 }
 
+// HandleGetWorkoutByID retrieves a specific workout by ID
+//
+//	@Summary		Get workout by ID
+//	@Description	Retrieve a specific workout and its exercises by workout ID
+//	@Tags			Workouts
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			id	path		int				true	"Workout ID"
+//	@Success		200	{object}	WorkoutResponse	"Workout details"
+//	@Failure		400	{object}	ErrorResponse	"Invalid workout ID"
+//	@Failure		401	{object}	ErrorResponse	"Unauthorized"
+//	@Failure		404	{object}	ErrorResponse	"Workout not found"
+//	@Failure		500	{object}	ErrorResponse	"Internal server error"
+//	@Router			/workouts/{id} [get]
 func (h *WorkoutHandler) HandleGetWorkoutByID(w http.ResponseWriter, r *http.Request) {
 	workoutId, err := utils.ReadIdParam(r)
 	if err != nil {
@@ -45,6 +83,20 @@ func (h *WorkoutHandler) HandleGetWorkoutByID(w http.ResponseWriter, r *http.Req
 	utils.WriteJSON(w, http.StatusOK, utils.Envelope{"workout": workout})
 }
 
+// HandleCreateWorkout creates a new workout
+//
+//	@Summary		Create a new workout
+//	@Description	Create a new workout with exercises for the authenticated user
+//	@Tags			Workouts
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			workout	body		store.Workout	true	"Workout data"
+//	@Success		201		{object}	WorkoutResponse	"Workout created successfully"
+//	@Failure		400		{object}	ErrorResponse	"Invalid request payload"
+//	@Failure		401		{object}	ErrorResponse	"Unauthorized"
+//	@Failure		500		{object}	ErrorResponse	"Internal server error"
+//	@Router			/workouts [post]
 func (h *WorkoutHandler) HandleCreateWorkout(w http.ResponseWriter, r *http.Request) {
 	var workout store.Workout
 	err := json.NewDecoder(r.Body).Decode(&workout)
@@ -74,6 +126,23 @@ func (h *WorkoutHandler) HandleCreateWorkout(w http.ResponseWriter, r *http.Requ
 	utils.WriteJSON(w, http.StatusCreated, utils.Envelope{"workout": result})
 }
 
+// HandleUpdateWorkout updates an existing workout
+//
+//	@Summary		Update workout
+//	@Description	Update an existing workout and its exercises (only by the owner)
+//	@Tags			Workouts
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			id		path		int				true	"Workout ID"
+//	@Param			workout	body		store.Workout	true	"Updated workout data"
+//	@Success		200		{object}	WorkoutResponse	"Workout updated successfully"
+//	@Failure		400		{object}	ErrorResponse	"Invalid request data"
+//	@Failure		401		{object}	ErrorResponse	"Unauthorized"
+//	@Failure		403		{object}	ErrorResponse	"Forbidden - not the owner"
+//	@Failure		404		{object}	ErrorResponse	"Workout not found"
+//	@Failure		500		{object}	ErrorResponse	"Internal server error"
+//	@Router			/workouts/{id} [put]
 func (h *WorkoutHandler) HandleUpdateWorkout(w http.ResponseWriter, r *http.Request) {
 	workoutId, err := utils.ReadIdParam(r)
 	if err != nil {
@@ -127,6 +196,22 @@ func (h *WorkoutHandler) HandleUpdateWorkout(w http.ResponseWriter, r *http.Requ
 	utils.WriteJSON(w, http.StatusOK, utils.Envelope{"workout": workout})
 }
 
+// HandleDeleteWorkout deletes a workout
+//
+//	@Summary		Delete workout
+//	@Description	Delete a workout by ID (only by the owner)
+//	@Tags			Workouts
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			id	path	int	true	"Workout ID"
+//	@Success		204	"Workout deleted successfully"
+//	@Failure		400	{object}	ErrorResponse	"Invalid workout ID"
+//	@Failure		401	{object}	ErrorResponse	"Unauthorized"
+//	@Failure		403	{object}	ErrorResponse	"Forbidden - not the owner"
+//	@Failure		404	{object}	ErrorResponse	"Workout not found"
+//	@Failure		500	{object}	ErrorResponse	"Internal server error"
+//	@Router			/workouts/{id} [delete]
 func (h *WorkoutHandler) HandleDeleteWorkout(w http.ResponseWriter, r *http.Request) {
 	workoutId, err := utils.ReadIdParam(r)
 	if err != nil {
@@ -175,6 +260,18 @@ func (h *WorkoutHandler) HandleDeleteWorkout(w http.ResponseWriter, r *http.Requ
 	w.WriteHeader(http.StatusNoContent)
 }
 
+// HandleGetAllWorkouts retrieves all workouts
+//
+//	@Summary		Get all workouts
+//	@Description	Retrieve a list of all workouts in the system
+//	@Tags			Workouts
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Success		200	{array}		WorkoutResponse	"List of workouts"
+//	@Failure		401	{object}	ErrorResponse	"Unauthorized"
+//	@Failure		500	{object}	ErrorResponse	"Internal server error"
+//	@Router			/workouts [get]
 func (h *WorkoutHandler) HandleGetAllWorkouts(w http.ResponseWriter, r *http.Request) {
 	workouts, err := h.workoutStore.GetAllWorkouts()
 	if err != nil {
