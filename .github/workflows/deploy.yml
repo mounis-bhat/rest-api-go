@@ -26,7 +26,7 @@ jobs:
 
       - name: Update host for production
         run: |
-          sed -i 's/@host\s*localhost:8080/@host workouts.mounis.net/' main.go
+          sed -i 's/@host\s*localhost:8080/@host workouts-api.mounis.net/' main.go
           sed -i 's/@schemes\s*http/@schemes https/' main.go
 
       - name: Generate Swagger documentation

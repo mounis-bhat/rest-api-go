@@ -249,9 +249,9 @@ The project includes a GitHub Actions workflow (`.github/workflows/deploy.yml`) 
 
 **Important for Production:**
 
-- The API documentation will be available at: `https://workouts.mounis.net/docs`
-- The API host is configured for `workouts.mounis.net` in production
-- CORS is configured for `https://workouts.mounis.net`
+- The API documentation will be available at: `https://workouts-api.mounis.net/docs`
+- The API host is configured for `workouts-api.mounis.net` in production
+- CORS is configured for `https://workouts-api.mounis.net`
 
 **Required GitHub Secrets:**
 
@@ -263,10 +263,10 @@ The project includes a GitHub Actions workflow (`.github/workflows/deploy.yml`) 
 
 ### Local Development vs Production
 
-| Environment    | API Documentation          | CORS Origin                   | Port |
-| -------------- | -------------------------- | ----------------------------- | ---- |
-| **Local**      | `localhost:8080/docs`      | Any                           | 8080 |
-| **Production** | `workouts.mounis.net/docs` | `https://workouts.mounis.net` | 8080 |
+| Environment    | API Documentation              | CORS Origin                       | Port |
+| -------------- | ------------------------------ | --------------------------------- | ---- |
+| **Local**      | `localhost:8080/docs`          | Any                               | 8080 |
+| **Production** | `workouts-api.mounis.net/docs` | `https://workouts-api.mounis.net` | 8080 |
 
 ## License
 
