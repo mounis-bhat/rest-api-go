@@ -32,7 +32,6 @@ import (
 	"time"
 
 	"github.com/joho/godotenv"
-	_ "github.com/mounis-bhat/rest-api-go/docs"
 	"github.com/mounis-bhat/rest-api-go/internal/app"
 	"github.com/mounis-bhat/rest-api-go/internal/routes"
 	"github.com/rs/cors"

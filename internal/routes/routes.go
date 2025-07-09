@@ -42,7 +42,7 @@ func InitializeRoutes(app *app.Application) *chi.Mux {
 		}
 
 		// Parse JSON to ensure it's valid
-		var spec map[string]interface{}
+		var spec map[string]any
 		if err := json.Unmarshal(specContent, &spec); err != nil {
 			http.Error(w, "Invalid API specification", http.StatusInternalServerError)
 			return
